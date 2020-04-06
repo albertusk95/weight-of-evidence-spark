@@ -28,17 +28,24 @@ class WOE_IV(object):
                 bad_dist = bad_dist if bad_dist is not None else 0.0
 
                 woe_info = {
-                    'category': category,
-                    'woe': math.log(good_dist / bad_dist)
+                    category: math.log(good_dist / bad_dist)
                 }
 
-                self.fit_data[col_to_woe] = woe_info
+                if col_to_woe not in self.fit_data:
+                    self.fit_data[col_to_woe] = woe_info
+                else:
+                    self.fit_data[col_to_woe].update(woe_info)
 
-    def transform(self):
+    def transform(self, df: DataFrame):
+        def _encode_woe(col_to_woe):
+            return F.coalesce(
+                *[F.when(F.col(col_to_woe) == category, F.lit(woe_value))
+                  for category, woe_value in self.fit_data[col_to_woe].items()]
+            )
+
         for col_to_woe, woe_info in self.fit_data.items():
-            self.df = self.df.withColumn(col_to_woe + '_woe', )
-
-
+            df = df.withColumn(col_to_woe + '_woe', _encode_woe(col_to_woe))
+        return df
 
     def compute_total_amount_of_good(self):
         return self.df.select(self.label_column).filter(F.col(self.label_column) == self.good_label).count()
@@ -57,29 +64,3 @@ class WOE_IV(object):
                       .filter(
                             (F.col(col_to_woe) == category) & (F.col(self.label_column) != self.good_label)
                       ).count()
-
-     
-
-
-def calculate_woe_iv(dataset, feature, target):
-    lst = []
-    for i in range(dataset[feature].nunique()):
-        val = list(dataset[feature].unique())[i]
-        lst.append({
-            'Value': val,
-            'All': dataset[dataset[feature] == val].count()[feature],
-            'Good': dataset[(dataset[feature] == val) & (dataset[target] == 0)].count()[feature],
-            'Bad': dataset[(dataset[feature] == val) & (dataset[target] == 1)].count()[feature]
-        })
-
-    dset = pd.DataFrame(lst)
-    dset['Distr_Good'] = dset['Good'] / dset['Good'].sum()
-    dset['Distr_Bad'] = dset['Bad'] / dset['Bad'].sum()
-    dset['WoE'] = np.log(dset['Distr_Good'] / dset['Distr_Bad'])
-    dset = dset.replace({'WoE': {np.inf: 0, -np.inf: 0}})
-    dset['IV'] = (dset['Distr_Good'] - dset['Distr_Bad']) * dset['WoE']
-    iv = dset['IV'].sum()
-
-    dset = dset.sort_values(by='WoE')
-
-    return dset, iv
