@@ -4,7 +4,10 @@ The implementation of Weight of Evidence (WOE) encoding and Information Value (I
 
 ## What you need
 
-PySpark >= 2.4.0
+<ul>
+  <li>Python >= 3.7.0</li>
+  <li>PySpark >= 2.4.0</li>
+</ul>
 
 ## Quickstart
 
