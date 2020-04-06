@@ -9,6 +9,14 @@ The implementation of Weight of Evidence (WOE) encoding and Information Value (I
   <li>PySpark >= 2.4.0</li>
 </ul>
 
+## Install
+
+<ul>
+  <li>Clone this repo</li>
+  <li>Go to the root directory of the local repo</li>
+  <li>Run <i>python setup.py install</i></li>
+</ul>
+
 ## Quickstart
 
 Please check the <a href="https://github.com/albertusk95/weight-of-evidence-spark/blob/master/woe_iv/main.py">main</a> module for the example.
