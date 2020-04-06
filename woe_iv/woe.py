@@ -32,8 +32,8 @@ class WOE_IV(object):
     def transform(self, df: DataFrame):
         def _encode_woe(col_to_woe_):
             return F.coalesce(
-                *[F.when(F.col(col_to_woe_) == category, F.lit(woe_value))
-                  for category, woe_value in self.fit_data[col_to_woe_].items()]
+                *[F.when(F.col(col_to_woe_) == category, F.lit(woe_iv['woe']))
+                  for category, woe_iv in self.fit_data[col_to_woe_].items()]
             )
 
         for col_to_woe, woe_info in self.fit_data.items():
@@ -60,10 +60,22 @@ class WOE_IV(object):
 
     def build_fit_data(self, col_to_woe, category, good_dist, bad_dist):
         woe_info = {
-            category: math.log(good_dist / bad_dist)
+            category: {
+                'woe': math.log(good_dist / bad_dist),
+                'iv': (good_dist - bad_dist) * math.log(good_dist / bad_dist)
+            }
         }
 
         if col_to_woe not in self.fit_data:
             self.fit_data[col_to_woe] = woe_info
         else:
             self.fit_data[col_to_woe].update(woe_info)
+
+    def compute_iv(self):
+        iv_dict = {}
+
+        for woe_col, categories in self.fit_data.items():
+            iv_dict[woe_col] = 0
+            for category, woe_iv in categories.items():
+                iv_dict[woe_col] += woe_iv['iv']
+        return iv_dict

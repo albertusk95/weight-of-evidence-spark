@@ -1,6 +1,6 @@
 from pyspark.sql import SparkSession
 
-from woe_iv.woe import WOE_IV
+from woe import WOE_IV
 
 
 if __name__ == '__main__':
@@ -12,9 +12,10 @@ if __name__ == '__main__':
 
     cols_to_woe = ['col_a', 'col_b']
     woe = WOE_IV(df, cols_to_woe, 'label', 1)
+
+    # woe encoding
     woe.fit()
+    encoded_df = woe.transform(df)
 
-    print(woe.fit_data)
-
-    woe_df = woe.transform(df)
-    woe_df.show()
+    # information value
+    ivs = woe.compute_iv()
