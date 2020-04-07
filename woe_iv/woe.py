@@ -21,11 +21,14 @@ class WOE_IV(object):
             categories = woe_df.distinct().collect()
             for category_row in categories:
                 category = category_row[col_to_woe]
-                good_dist = self.compute_good_amount(col_to_woe, category) / total_good
-                bad_dist = self.compute_bad_amount(col_to_woe, category) / total_bad
+                good_amount = self.compute_good_amount(col_to_woe, category)
+                bad_amount = self.compute_bad_amount(col_to_woe, category)
 
-                good_dist = good_dist if good_dist is not None else 0.0
-                bad_dist = bad_dist if bad_dist is not None else 0.0
+                good_amount = good_amount if good_amount != 0 else 0.5
+                bad_amount = bad_amount if bad_amount != 0 else 0.5
+
+                good_dist = good_amount / total_good
+                bad_dist = bad_amount / total_bad
 
                 self.build_fit_data(col_to_woe, category, good_dist, bad_dist)
 
